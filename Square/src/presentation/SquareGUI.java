@@ -121,6 +121,7 @@ public class SquareGUI extends JFrame {
             }
         });
         prepareMenuActions();
+        prepareArrowsActions();
     }
 
     /**
@@ -214,20 +215,22 @@ public class SquareGUI extends JFrame {
             } else if (counter < (filledCount * 2) * 2 && onlyBorder) { // Pintar solo el borde del botón
                 button.setBorder(new LineBorder(randomColor, 10));
                 button.setContentAreaFilled(false);
+                button.setEnabled(false);
                 onlyBorder = false;
             } else { // Si ninguna de las condiciones se cumple, pintar el botón de blanco
                 button.setBackground(Color.WHITE);
                 button.setEnabled(false);
             }
             buttons[position.x][position.y] = button;
-            // Crear una instancia de Square para cada botón
-//            Color borderColor = Color.WHITE;
-//            if (button.getBorder() instanceof LineBorder) {
-//                borderColor = ((LineBorder) button.getBorder()).getLineColor();
-//            }
-//            Square square = new Square(button.getBackground(), borderColor);
-//            // Store the square in the HashMap with color as the key
-//            squaresMap.put(button.getBackground(), square);
+            button.addMouseListener(changeColorButtonAction());
+            //Crear una instancia de Square para cada botón
+            Color borderColor = Color.WHITE;
+            if (button.getBorder() instanceof LineBorder) {
+                borderColor = ((LineBorder) button.getBorder()).getLineColor();
+            }
+            Square square = new Square(button.getBackground(), borderColor);
+            // Store the square in the HashMap with color as the key
+            squaresMap.put(button.getBackground(), square);
             counter++;
         }
         for (int i = 0; i < rows; i++) {
@@ -238,7 +241,58 @@ public class SquareGUI extends JFrame {
         this.add(panel, BorderLayout.CENTER);
         this.revalidate();
         this.repaint();
-}
+    }
+
+    private MouseListener changeColorButtonAction(){
+        return new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                JButton button = (JButton) e.getSource();
+                Color originalColor = button.getBackground();
+                Color borderColor = null;
+                if (button.getBorder() instanceof LineBorder) {
+                    borderColor = ((LineBorder) button.getBorder()).getLineColor();
+                }
+                Square square = squaresMap.get(originalColor);
+                if (square != null) {
+                    square.changeColor(borderColor);
+                    button.setBackground(square.getColor());
+                    if (button.getBorder() instanceof LineBorder) {
+                        ((LineBorder) button.getBorder()).getLineColor();
+                    }
+                }
+            }
+        };
+    }
+
+    private void prepareArrowsActions() {
+        arrowUp.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //CAmbia la posicion de los botones que estan en 1,1 y 2,2
+                JButton temp = buttons[1][1];
+                //System.out.println(temp.getBackground());
+
+                for(JButton button[] : buttons){
+                    for(JButton b : button){
+                        System.out.println(b.getBackground());
+                    }
+                }
+            }
+        });
+
+        arrowDown.addActionListener(e -> {
+            //TODO
+        });
+
+        arrowLeft.addActionListener(e -> {
+            //TODO
+        });
+
+        arrowRight.addActionListener(e -> {
+            //TODO
+        });
+    }
 
     /**
      * Function to prepare the arrows of the board
@@ -274,6 +328,11 @@ public class SquareGUI extends JFrame {
         boadPaneArrow.add(new JLabel());
         //Add the panel to the window
         this.add(boadPaneArrow, BorderLayout.SOUTH);
+    }
+
+    private void refresh() {
+        this.revalidate();
+        this.repaint();
     }
 
     private Polygon createUpArrow() {

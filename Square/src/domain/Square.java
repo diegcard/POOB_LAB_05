@@ -1,5 +1,6 @@
 package Square.src.domain;
 
+import javax.swing.*;
 import java.awt.*;
 
 /**
@@ -12,14 +13,29 @@ import java.awt.*;
  * @version 1.0
  */
 public class Square {
+    private Color color;
+    private Color borderColor;
 
-    private String namePlayer1;
-    private String namePlayer2;
+    public Square(Color color, Color borderColor) {
+        this.color = color;
+        this.borderColor = borderColor;
+    }
 
-    private int scorePlayer1;
-    private int scorePlayer2;
+    public void changeColor(Color borderColor) {
+        if(!this.color.equals(Color.BLACK)) {
+            Color newColor = JColorChooser.showDialog(null, "Choose a color", this.color);
+            if(newColor != null) {
+                this.color = newColor;
+                this.borderColor = borderColor;
+            }
+        }
+    }
 
+    public Color getColor() {
+        return color;
+    }
 
-    public Square(Color background, Color borderColor) {
+    public Color getBorderColor() {
+        return borderColor;
     }
 }
