@@ -1,5 +1,7 @@
 package Square.src.domain;
 
+import java.awt.*;
+
 /**
  * The square class is a class that represents a square.
  * It has the following attributes:
@@ -11,8 +13,6 @@ package Square.src.domain;
  */
 public class Square {
 
-    private final int size;
-
     private String namePlayer1;
     private String namePlayer2;
 
@@ -20,9 +20,6 @@ public class Square {
     private int scorePlayer2;
 
 
-
-    public Square(int size){
-        this.size = size;
-
+    public Square(Color background, Color borderColor) {
     }
 }
