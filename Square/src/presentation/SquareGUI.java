@@ -8,10 +8,7 @@ import java.awt.image.BufferedImage;
 import java.util.Collections;
 import java.util.*;
 import javax.swing.*;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
@@ -53,7 +50,7 @@ public class SquareGUI extends JFrame {
     private Square[][] squares;
     private JButton[][] buttons;
 
-    private HashMap<Color, Square> squaresMap;
+    //private HashMap<Color, Square> squaresMap;
 
     /**
      * prepareElements
@@ -92,6 +89,10 @@ public class SquareGUI extends JFrame {
         return menuBar;
     }
 
+    /**
+     * SquareGUI
+     * This is the constructor of the class. It prepares the elements and actions of the window.
+     */
     private SquareGUI() {
         prepareElements();
         preparateActions();
@@ -184,9 +185,16 @@ public class SquareGUI extends JFrame {
      */
     private void prepareElementsBoard() {
         preparateArrows();
-        prepareElementsBoardGame(4, 4, 3);
+        prepareElementsBoardGame(5, 5, 3);
     }
 
+    /**
+     * Function to prepare the elements of the board game
+     *
+     * @param rows        nums of rows
+     * @param columns     nums of columns
+     * @param filledCount nums of filled squares
+     */
     private void prepareElementsBoardGame(int rows, int columns, int filledCount) {
         JPanel panel = new JPanel(new GridLayout(rows, columns));
         int counter = 0;
@@ -198,8 +206,6 @@ public class SquareGUI extends JFrame {
         }
         Collections.shuffle(positions);
         buttons = new JButton[rows][columns];
-        // Use a HashMap to store the squares with color as the key
-        squaresMap = new HashMap<>();
         Random random = new Random();
         boolean onlyBorder = false;
         Color randomColor = null;
@@ -223,14 +229,6 @@ public class SquareGUI extends JFrame {
             }
             buttons[position.x][position.y] = button;
             button.addMouseListener(changeColorButtonAction());
-            //Crear una instancia de Square para cada botón
-            Color borderColor = Color.WHITE;
-            if (button.getBorder() instanceof LineBorder) {
-                borderColor = ((LineBorder) button.getBorder()).getLineColor();
-            }
-            Square square = new Square(button.getBackground(), borderColor);
-            // Store the square in the HashMap with color as the key
-            squaresMap.put(button.getBackground(), square);
             counter++;
         }
         for (int i = 0; i < rows; i++) {
@@ -243,41 +241,44 @@ public class SquareGUI extends JFrame {
         this.repaint();
     }
 
-    private MouseListener changeColorButtonAction(){
+    /**
+     * Function to change the color of the buttons
+     *
+     * @return MouseListener
+     */
+    private MouseListener changeColorButtonAction() {
         return new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 JButton button = (JButton) e.getSource();
                 Color originalColor = button.getBackground();
                 Color borderColor = null;
-                if (button.getBorder() instanceof LineBorder) {
-                    borderColor = ((LineBorder) button.getBorder()).getLineColor();
-                }
-                Square square = squaresMap.get(originalColor);
-                if (square != null) {
-                    square.changeColor(borderColor);
-                    button.setBackground(square.getColor());
-                    if (button.getBorder() instanceof LineBorder) {
-                        ((LineBorder) button.getBorder()).getLineColor();
+                Color newColor = JColorChooser.showDialog(null, "Choose a color", originalColor);
+                button.setBackground(newColor);
+                button.setBorder(new LineBorder(Color.WHITE, 10));
+                for (int i = 0; i < buttons.length; i++) {
+                    for (int j = 0; j < buttons[i].length; j++) {
+                        JButton currentButton = buttons[i][j];
+                        if (currentButton.getBorder() instanceof LineBorder) {
+                            if (((LineBorder) currentButton.getBorder()).getLineColor().equals(originalColor)) {
+                                currentButton.setBackground(newColor);
+                                currentButton.setBorder(new LineBorder(newColor, 10));
+                            }
+                        }
                     }
                 }
             }
         };
     }
 
+    /**
+     * Function to prepare the actions of the arrows
+     */
     private void prepareArrowsActions() {
         arrowUp.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //CAmbia la posicion de los botones que estan en 1,1 y 2,2
-                JButton temp = buttons[1][1];
-                //System.out.println(temp.getBackground());
-
-                for(JButton button[] : buttons){
-                    for(JButton b : button){
-                        System.out.println(b.getBackground());
-                    }
-                }
+                //TODO
             }
         });
 
@@ -308,9 +309,9 @@ public class SquareGUI extends JFrame {
         boadPaneArrow.setBorder(BorderFactory.createEmptyBorder((int) topAndBottom, (int) leftAndRight, (int) topAndBottom, (int) leftAndRight));
         //Create the buttons
         Polygon upArrow = createUpArrow();
-        Polygon downArrow = createUpArrow();
-        Polygon leftArrow = createUpArrow();
-        Polygon rightArrow = createUpArrow();
+        Polygon downArrow = createDownArrow();
+        Polygon leftArrow = createLeftArrow();
+        Polygon rightArrow = createRightArrow();
         //Create the buttons
         arrowUp = createArrowButton(upArrow);
         arrowDown = createArrowButton(downArrow);
@@ -330,11 +331,19 @@ public class SquareGUI extends JFrame {
         this.add(boadPaneArrow, BorderLayout.SOUTH);
     }
 
+    /**
+     * Refresh the window
+     */
     private void refresh() {
-        this.revalidate();
-        this.repaint();
+        revalidate();
+        repaint();
     }
 
+    /**
+     * Function to create the up arrow
+     *
+     * @return Polygon
+     */
     private Polygon createUpArrow() {
         Polygon arrow = new Polygon();
         arrow.addPoint(10, 0);
@@ -343,8 +352,53 @@ public class SquareGUI extends JFrame {
         return arrow;
     }
 
+    /**
+     * Function to create the down arrow
+     *
+     * @return Polygon
+     */
+    private Polygon createDownArrow() {
+        Polygon arrow = new Polygon();
+        arrow.addPoint(0, 0);
+        arrow.addPoint(20, 0);
+        arrow.addPoint(10, 20);
+        return arrow;
+    }
+
+    /**
+     * Function to create the left arrow
+     *
+     * @return Polygon
+     */
+    private Polygon createLeftArrow() {
+        Polygon arrow = new Polygon();
+        arrow.addPoint(0, 10);
+        arrow.addPoint(20, 0);
+        arrow.addPoint(20, 20);
+        return arrow;
+    }
+
+    /**
+     * Function to create the right arrow
+     *
+     * @return Polygon
+     */
+    private Polygon createRightArrow() {
+        Polygon arrow = new Polygon();
+        arrow.addPoint(0, 0);
+        arrow.addPoint(20, 10);
+        arrow.addPoint(0, 20);
+        return arrow;
+    }
+
+    /**
+     * Function to create the arrow button
+     *
+     * @param arrow Polygon
+     * @return JButton
+     */
     private static JButton createArrowButton(Polygon arrow) {
-        BufferedImage arrowImage = new BufferedImage(15, 15, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage arrowImage = new BufferedImage(20, 20, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = arrowImage.createGraphics();
         g2d.setColor(Color.GRAY);
         g2d.fill(arrow);

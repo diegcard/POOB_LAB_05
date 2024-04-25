@@ -15,6 +15,7 @@ import java.awt.*;
 public class Square {
     private Color color;
     private Color borderColor;
+    
 
     public Square(Color color, Color borderColor) {
         this.color = color;
