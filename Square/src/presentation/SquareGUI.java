@@ -32,7 +32,7 @@ public class SquareGUI extends JFrame {
     private JMenuItem menuOpen;
     private JMenuItem menuSave;
     private JMenuItem menuExit;
-
+    private JButton button;
     private JMenuItem changeSize;
 
     //Panel elemts
@@ -108,16 +108,20 @@ public class SquareGUI extends JFrame {
      * logicChangeSize
      * This method is the logic to change the size of the board.
      */
-    private void logicChangeSize() throws NumberFormatException{
+    private void logicChangeSize() throws NumberFormatException {
         String size = JOptionPane.showInputDialog(this, "Enter the size of the board", "Change size", JOptionPane.QUESTION_MESSAGE);
         if (size != null) {
             try {
                 int newSize = Integer.parseInt(size);
                 if (newSize > 0) {
                     getContentPane().removeAll();
-                    //Integer m = Math.pow(newSize, 2) / 2;
-                    prepareElementsBoardGame(newSize, newSize, newSize / 2);
+                    Integer m = newSize / 2;
+                    squares = null;
+                    buttons = null;
+                    prepareElementsBoardGame(newSize, newSize, m);
                     preparateArrows();
+                    preparateActions();
+
                 } else {
                     JOptionPane.showMessageDialog(this, "The size must be greater than 0", "Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -252,22 +256,22 @@ public class SquareGUI extends JFrame {
         }
         Collections.shuffle(positions);
         this.buttons = new JButton[rows][columns];
+        this.squares = new Square[rows][columns];
         Random random = new Random();
         boolean onlyBorder = false;
         Color randomColor = null;
 
         for (Point position : positions) {
-            JButton button = new JButton();
+            button = new JButton();
             if (counter < filledCount * 2 && !onlyBorder) { // Pintar el botón completamente
                 randomColor = new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256));
                 button.setBackground(randomColor);
-                button.setBorder(new LineBorder(Color.WHITE, 10));
+                //button.setBorder(new LineBorder(Color.WHITE, 10));
                 button.setContentAreaFilled(true);
                 onlyBorder = true;
                 button.addMouseListener(changeColorButtonAction());
             } else if (counter < (filledCount * 2) * 2 && onlyBorder) { // Pintar solo el borde del botón
                 button.setBorder(new LineBorder(randomColor, 10));
-                button.setContentAreaFilled(false);
                 button.setEnabled(false);
                 onlyBorder = false;
             } else { // Si ninguna de las condiciones se cumple, pintar el botón de blanco
@@ -275,7 +279,14 @@ public class SquareGUI extends JFrame {
                 button.setEnabled(false);
             }
             buttons[position.x][position.y] = button;
-            //button.addMouseListener(changeColorButtonAction());
+
+            Color borderColor = Color.WHITE;
+
+            if (button.getBorder() instanceof LineBorder) {
+                borderColor = ((LineBorder) button.getBorder()).getLineColor();
+            }
+            Square square = new Square(button.getBackground(), borderColor, squares, buttons);
+            squares[position.x][position.y] = square;
             counter++;
         }
         for (int i = 0; i < rows; i++) {
@@ -299,9 +310,23 @@ public class SquareGUI extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 JButton button = (JButton) e.getSource();
                 Color originalColor = button.getBackground();
-                Color borderColor = null;
                 Color newColor = JColorChooser.showDialog(null, "Choose a color", originalColor);
-
+                boolean flag = false;
+                for (int i = 0; i < buttons.length; i++) {
+                    for (int j = 0; j < buttons[i].length; j++) {
+                        JButton currentButton = buttons[i][j];
+                        if (currentButton.getBorder() instanceof LineBorder) {
+                            if (((LineBorder) currentButton.getBorder()).getLineColor().equals(newColor)) {
+                                flag = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (flag) {
+                    JOptionPane.showMessageDialog(SquareGUI.this, "You can't use the same color", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
                 button.setBackground(newColor);
                 button.setBorder(new LineBorder(Color.WHITE, 10));
                 for (int i = 0; i < buttons.length; i++) {
@@ -326,20 +351,97 @@ public class SquareGUI extends JFrame {
         arrowUp.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //TODO
+                // recorrer la matriz
+                for (int i = 0; i < buttons.length; i++) {
+                    for (int j = 0; j < buttons[i].length; j++) {
+                        // mueve el botón hacia arriba
+                        squares[i][j].moveUp(i, j);
+                    }
+                }
+
+                // recorrer la matriz
+                for (int i = 0; i < buttons.length; i++) {
+                    for (int j = 0; j < buttons[i].length; j++) {
+                        squares[i][j].holeee();
+                        if (squares[i][j].isNotWiner()) {
+                            JOptionPane.showMessageDialog(SquareGUI.this, "You win", "Congratulations", JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    }
+                }
+
+                // Obtiene los cuadrados y botones actualizados
+                squares = squares[0][0].getSquares();
+                buttons = squares[0][0].getButtons();
+
+                // Repinta la GUI
+                repaint();
             }
         });
 
         arrowDown.addActionListener(e -> {
-            //TODO
+            for (int i = buttons.length - 1; i >= 0; i--) {
+                for (int j = 0; j < buttons[i].length; j++) {
+                    squares[i][j].moveDown(i, j);
+                }
+            }
+
+            for (int i = 0; i < buttons.length; i++) {
+                for (int j = 0; j < buttons[i].length; j++) {
+                    squares[i][j].holeee();
+                    if (squares[i][j].isNotWiner()) {
+                        JOptionPane.showMessageDialog(SquareGUI.this, "You win", "Congratulations", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+            }
+
+            squares = squares[0][0].getSquares();
+            buttons = squares[0][0].getButtons();
+
+            repaint();
         });
 
         arrowLeft.addActionListener(e -> {
-            //TODO
+            for (int i = 0; i < buttons.length; i++) {
+                for (int j = 0; j < buttons[i].length; j++) {
+                    squares[i][j].moveLeft(i, j);
+                }
+            }
+
+            for (int i = 0; i < buttons.length; i++) {
+                for (int j = 0; j < buttons[i].length; j++) {
+                    squares[i][j].holeee();
+                    if (squares[i][j].isNotWiner()) {
+                        JOptionPane.showMessageDialog(SquareGUI.this, "You win", "Congratulations", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+            }
+
+            squares = squares[0][0].getSquares();
+            buttons = squares[0][0].getButtons();
+
+            repaint();
         });
 
         arrowRight.addActionListener(e -> {
-            //TODO
+            for (int i = 0; i < buttons.length; i++) {
+                for (int j = buttons[i].length - 1; j >= 0; j--) {
+                    squares[i][j].moveRight(i, j);
+                }
+            }
+
+            for (int i = 0; i < buttons.length; i++) {
+                for (int j = 0; j < buttons[i].length; j++) {
+                    squares[i][j].holeee();
+                    if (squares[i][j].isNotWiner()) {
+                        JOptionPane.showMessageDialog(SquareGUI.this, "You win", "Congratulations", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+            }
+
+            squares = squares[0][0].getSquares();
+            buttons = squares[0][0].getButtons();
+
+            repaint();
         });
     }
 
