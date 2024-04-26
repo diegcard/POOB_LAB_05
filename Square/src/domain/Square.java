@@ -15,11 +15,22 @@ import java.awt.*;
 public class Square {
     private Color color;
     private Color borderColor;
-    
+    private Square[][] squares;
+    private JButton[][] buttons;
 
-    public Square(Color color, Color borderColor) {
+    public Square[][] getSquares() {
+        return squares;
+    }
+
+    public JButton[][] getButtons() {
+        return buttons;
+    }
+
+    public Square(Color color, Color borderColor, Square[][] squares, JButton[][] buttons) {
         this.color = color;
         this.borderColor = borderColor;
+        this.squares = squares;
+        this.buttons = buttons;
     }
 
     public void changeColor(Color borderColor) {

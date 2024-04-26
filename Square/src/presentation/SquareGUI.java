@@ -33,6 +33,8 @@ public class SquareGUI extends JFrame {
     private JMenuItem menuSave;
     private JMenuItem menuExit;
 
+    private JMenuItem changeSize;
+
     //Panel elemts
     private JPanel panelElements;
 
@@ -86,7 +88,47 @@ public class SquareGUI extends JFrame {
         //Add menu to menu bar
         menuBar.add(menuFile);
         menuFile.addMouseListener(menuItemMouseListener);
+        //Add settings menu
+        JMenu menuSettings = new JMenu("Settings");
+        changeSize = new JMenuItem("Change size");
+        JMenuItem changeColor = new JMenuItem("Reset");
+        //Functions to hand
+        changeSize.addMouseListener(menuItemMouseListener);
+        changeColor.addMouseListener(menuItemMouseListener);
+        //Add items to menu
+        menuSettings.add(changeSize);
+        menuSettings.add(changeColor);
+        //Add menu to menu bar
+        menuSettings.addMouseListener(menuItemMouseListener);
+        menuBar.add(menuSettings);
         return menuBar;
+    }
+
+    /**
+     * logicChangeSize
+     * This method is the logic to change the size of the board.
+     */
+    private void logicChangeSize() throws NumberFormatException{
+        String size = JOptionPane.showInputDialog(this, "Enter the size of the board", "Change size", JOptionPane.QUESTION_MESSAGE);
+        if (size != null) {
+            try {
+                int newSize = Integer.parseInt(size);
+                if (newSize > 0) {
+                    getContentPane().removeAll();
+                    //Integer m = Math.pow(newSize, 2) / 2;
+                    prepareElementsBoardGame(newSize, newSize, newSize / 2);
+                    preparateArrows();
+                } else {
+                    JOptionPane.showMessageDialog(this, "The size must be greater than 0", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "The size must be a number", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+
+        this.revalidate();
+        this.repaint();
+        this.refresh();
     }
 
     /**
@@ -177,6 +219,10 @@ public class SquareGUI extends JFrame {
         menuExit.addActionListener(e -> {
             closeApp();
         });
+
+        changeSize.addActionListener(e -> {
+            logicChangeSize();
+        });
     }
 
     /**
@@ -205,7 +251,7 @@ public class SquareGUI extends JFrame {
             }
         }
         Collections.shuffle(positions);
-        buttons = new JButton[rows][columns];
+        this.buttons = new JButton[rows][columns];
         Random random = new Random();
         boolean onlyBorder = false;
         Color randomColor = null;
@@ -218,6 +264,7 @@ public class SquareGUI extends JFrame {
                 button.setBorder(new LineBorder(Color.WHITE, 10));
                 button.setContentAreaFilled(true);
                 onlyBorder = true;
+                button.addMouseListener(changeColorButtonAction());
             } else if (counter < (filledCount * 2) * 2 && onlyBorder) { // Pintar solo el borde del botón
                 button.setBorder(new LineBorder(randomColor, 10));
                 button.setContentAreaFilled(false);
@@ -228,7 +275,7 @@ public class SquareGUI extends JFrame {
                 button.setEnabled(false);
             }
             buttons[position.x][position.y] = button;
-            button.addMouseListener(changeColorButtonAction());
+            //button.addMouseListener(changeColorButtonAction());
             counter++;
         }
         for (int i = 0; i < rows; i++) {
@@ -254,6 +301,7 @@ public class SquareGUI extends JFrame {
                 Color originalColor = button.getBackground();
                 Color borderColor = null;
                 Color newColor = JColorChooser.showDialog(null, "Choose a color", originalColor);
+
                 button.setBackground(newColor);
                 button.setBorder(new LineBorder(Color.WHITE, 10));
                 for (int i = 0; i < buttons.length; i++) {
@@ -308,10 +356,10 @@ public class SquareGUI extends JFrame {
         JPanel boadPaneArrow = new JPanel(new GridLayout(3, 3));
         boadPaneArrow.setBorder(BorderFactory.createEmptyBorder((int) topAndBottom, (int) leftAndRight, (int) topAndBottom, (int) leftAndRight));
         //Create the buttons
-        Polygon upArrow = createUpArrow();
-        Polygon downArrow = createDownArrow();
-        Polygon leftArrow = createLeftArrow();
-        Polygon rightArrow = createRightArrow();
+        Polygon upArrow = createArrowUpDesign();
+        Polygon downArrow = createArrowDownDesign();
+        Polygon leftArrow = createArrowLeftDesign();
+        Polygon rightArrow = createArrowRightDesing();
         //Create the buttons
         arrowUp = createArrowButton(upArrow);
         arrowDown = createArrowButton(downArrow);
@@ -344,12 +392,11 @@ public class SquareGUI extends JFrame {
      *
      * @return Polygon
      */
-    private Polygon createUpArrow() {
-        Polygon arrow = new Polygon();
-        arrow.addPoint(10, 0);
-        arrow.addPoint(20, 20);
-        arrow.addPoint(0, 20);
-        return arrow;
+    private Polygon createArrowUpDesign() {
+        int[] xPoints = {10, 20, 0};
+        int[] yPoints = {0, 20, 20};
+        int nPoints = 3;
+        return new Polygon(xPoints, yPoints, nPoints);
     }
 
     /**
@@ -357,12 +404,11 @@ public class SquareGUI extends JFrame {
      *
      * @return Polygon
      */
-    private Polygon createDownArrow() {
-        Polygon arrow = new Polygon();
-        arrow.addPoint(0, 0);
-        arrow.addPoint(20, 0);
-        arrow.addPoint(10, 20);
-        return arrow;
+    private Polygon createArrowDownDesign() {
+        int[] xPoints = {0, 20, 10};
+        int[] yPoints = {0, 0, 20};
+        int nPoints = 3;
+        return new Polygon(xPoints, yPoints, nPoints);
     }
 
     /**
@@ -370,12 +416,11 @@ public class SquareGUI extends JFrame {
      *
      * @return Polygon
      */
-    private Polygon createLeftArrow() {
-        Polygon arrow = new Polygon();
-        arrow.addPoint(0, 10);
-        arrow.addPoint(20, 0);
-        arrow.addPoint(20, 20);
-        return arrow;
+    private Polygon createArrowLeftDesign() {
+        int[] xPoints = {0, 20, 20};
+        int[] yPoints = {10, 0, 20};
+        int nPoints = 3;
+        return new Polygon(xPoints, yPoints, nPoints);
     }
 
     /**
@@ -383,7 +428,7 @@ public class SquareGUI extends JFrame {
      *
      * @return Polygon
      */
-    private Polygon createRightArrow() {
+    private Polygon createArrowRightDesing() {
         Polygon arrow = new Polygon();
         arrow.addPoint(0, 0);
         arrow.addPoint(20, 10);
