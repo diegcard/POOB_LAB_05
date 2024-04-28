@@ -426,6 +426,7 @@ public class Square {
                         }
                         String position = currentRow + "," + (currentColumn + 1);
                         buttonsColors.put(position, squareRight.getColor());
+
                     } else if (isTappedHole(currentRow, currentColumn + 1)) {
                         squareRight.setCanMove(true);
                         squareRight.setColor(this.color);

@@ -56,10 +56,13 @@ public class SquareGUI extends JFrame implements KeyListener{
     private JButton[][] buttons;
 
     private JButton[][] buttonsCopy;
+    private Square[][] squaresCopy;
 
     private int movements = 0;
     private Button buttonMovements;
     private Button buttonPercentageWin;
+
+    private HashSet<Point> holes = new HashSet<>();
 
     private void updateMovements() {
         buttonMovements.setLabel("Movimientos: " + movements);
@@ -277,9 +280,11 @@ public class SquareGUI extends JFrame implements KeyListener{
         this.buttons = new JButton[rows][columns];
         this.buttonsCopy = new JButton[rows][columns];
         this.squares = new Square[rows][columns];
+        this.squaresCopy = new Square[rows][columns];
         Random random = new Random();
         boolean onlyBorder = false;
         Color randomColor = null;
+        cantFichas = filledCount;
 
         for (Point position : positions) {
             button = new JButton();
@@ -308,6 +313,7 @@ public class SquareGUI extends JFrame implements KeyListener{
             }
             Square square = new Square(button.getBackground(), borderColor, squares, buttons);
             squares[position.x][position.y] = square;
+            squaresCopy[position.x][position.y] = square;
             counter++;
         }
         for (int i = 0; i < rows; i++) {
@@ -392,9 +398,8 @@ public class SquareGUI extends JFrame implements KeyListener{
                         }
                     }
                 }
-
+                isChechHoles();
                 updateMovements();
-
                 revalidate();
                 repaint();
                 refresh();
@@ -419,7 +424,7 @@ public class SquareGUI extends JFrame implements KeyListener{
                 }
             }
 
-
+            isChechHoles();
 
             updateMovements();
 
@@ -445,7 +450,7 @@ public class SquareGUI extends JFrame implements KeyListener{
                     }
                 }
             }
-
+            isChechHoles();
             updateMovements();
 
             revalidate();
@@ -470,11 +475,36 @@ public class SquareGUI extends JFrame implements KeyListener{
                     }
                 }
             }
+            isChechHoles();
             updateMovements();
             revalidate();
             repaint();
             refresh();
         });
+    }
+
+    private int huecosTaped = 0;
+    private int cantFichas = 0;
+
+    public void isChechHoles(){
+        System.out.println("Huecos tapados");
+        for (int i = 0; i < squares.length; i++) {
+            for (int j = 0; j < squares[i].length; j++) {
+                Point point = new Point(i, j);
+                if(!holes.contains(point)){
+                    if(squares[i][j].isTappedHole(i, j)){
+                        System.out.println(huecosTaped);
+                        huecosTaped++;
+                        holes.add(point);
+                    }
+                }
+            }
+        }
+        System.out.println(huecosTaped);
+        System.out.println(cantFichas);
+        if (huecosTaped == cantFichas) {
+            JOptionPane.showMessageDialog(SquareGUI.this, "You win", "Congratulations", JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 
     /**
@@ -526,13 +556,26 @@ public class SquareGUI extends JFrame implements KeyListener{
      * Function to reset the board
      */
     private void reset() {
-        this.buttons = new JButton[buttonsCopy.length][buttonsCopy[0].length];
+
+        buttons = new JButton[buttonsCopy.length][buttonsCopy[0].length];
         for (int i = 0; i < buttons.length; i++) {
             for (int j = 0; j < buttons[i].length; j++) {
                 buttons[i][j] = buttonsCopy[i][j];
             }
         }
+        squares = new Square[squaresCopy.length][squaresCopy[0].length];
+        for (int i = 0; i < squares.length; i++) {
+            for (int j = 0; j < squares[i].length; j++) {
+                squares[i][j] = squaresCopy[i][j];
+            }
+        }
+        revalidate();
+        repaint();
         refresh();
+        buttonMovements.setLabel("Movimientos: " + 0);
+        movements = 0;
+        buttonPercentageWin.setLabel("Porcentaje de victoria: " + 0 + "%");
+        System.out.println("Reset");
     }
 
     /**
