@@ -10,6 +10,8 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
 /**
  * SquareGUI
@@ -19,7 +21,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  * @author Sebastian Cardona
  * @version 1.0
  */
-public class SquareGUI extends JFrame {
+public class SquareGUI extends JFrame implements KeyListener{
 
     //Dimensions
     private static final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -34,6 +36,7 @@ public class SquareGUI extends JFrame {
     private JMenuItem menuExit;
     private JButton button;
     private JMenuItem changeSize;
+    private JMenuItem reset;
 
     //Panel elemts
     private JPanel panelElements;
@@ -51,6 +54,16 @@ public class SquareGUI extends JFrame {
 
     private Square[][] squares;
     private JButton[][] buttons;
+
+    private JButton[][] buttonsCopy;
+
+    private int movements = 0;
+    private Button buttonMovements;
+    private Button buttonPercentageWin;
+
+    private void updateMovements() {
+        buttonMovements.setLabel("Movimientos: " + movements);
+    }
 
     //private HashMap<Color, Square> squaresMap;
 
@@ -91,13 +104,13 @@ public class SquareGUI extends JFrame {
         //Add settings menu
         JMenu menuSettings = new JMenu("Settings");
         changeSize = new JMenuItem("Change size");
-        JMenuItem changeColor = new JMenuItem("Reset");
+        reset = new JMenuItem("Reset");
         //Functions to hand
         changeSize.addMouseListener(menuItemMouseListener);
-        changeColor.addMouseListener(menuItemMouseListener);
+        reset.addMouseListener(menuItemMouseListener);
         //Add items to menu
         menuSettings.add(changeSize);
-        menuSettings.add(changeColor);
+        menuSettings.add(reset);
         //Add menu to menu bar
         menuSettings.addMouseListener(menuItemMouseListener);
         menuBar.add(menuSettings);
@@ -142,6 +155,8 @@ public class SquareGUI extends JFrame {
     private SquareGUI() {
         prepareElements();
         preparateActions();
+        addKeyListener(this);
+        setFocusable(true);
     }
 
     /**
@@ -190,7 +205,7 @@ public class SquareGUI extends JFrame {
      */
     private void prepareMenuActions() {
         menuNew.addActionListener(e -> {
-            //TODO
+            logicChangeSize();
         });
 
         menuOpen.addActionListener(new ActionListener() {
@@ -227,6 +242,10 @@ public class SquareGUI extends JFrame {
         changeSize.addActionListener(e -> {
             logicChangeSize();
         });
+
+        reset.addActionListener(e -> {
+            reset();
+        });
     }
 
     /**
@@ -256,6 +275,7 @@ public class SquareGUI extends JFrame {
         }
         Collections.shuffle(positions);
         this.buttons = new JButton[rows][columns];
+        this.buttonsCopy = new JButton[rows][columns];
         this.squares = new Square[rows][columns];
         Random random = new Random();
         boolean onlyBorder = false;
@@ -278,8 +298,9 @@ public class SquareGUI extends JFrame {
                 button.setBackground(Color.WHITE);
                 button.setEnabled(false);
             }
-            buttons[position.x][position.y] = button;
 
+            buttons[position.x][position.y] = button;
+            buttonsCopy[position.x][position.y] = button;
             Color borderColor = Color.WHITE;
 
             if (button.getBorder() instanceof LineBorder) {
@@ -333,9 +354,11 @@ public class SquareGUI extends JFrame {
                     for (int j = 0; j < buttons[i].length; j++) {
                         JButton currentButton = buttons[i][j];
                         if (currentButton.getBorder() instanceof LineBorder) {
+
                             if (((LineBorder) currentButton.getBorder()).getLineColor().equals(originalColor)) {
                                 currentButton.setBackground(newColor);
                                 currentButton.setBorder(new LineBorder(newColor, 10));
+                                buttons[i][j] = currentButton;
                             }
                         }
                     }
@@ -351,97 +374,106 @@ public class SquareGUI extends JFrame {
         arrowUp.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // recorrer la matriz
+                movements++;
                 for (int i = 0; i < buttons.length; i++) {
                     for (int j = 0; j < buttons[i].length; j++) {
-                        // mueve el botón hacia arriba
                         squares[i][j].moveUp(i, j);
                     }
                 }
 
-                // recorrer la matriz
+                squares = squares[0][0].getSquares();
+                buttons = squares[0][0].getButtons();
+
                 for (int i = 0; i < buttons.length; i++) {
                     for (int j = 0; j < buttons[i].length; j++) {
-                        squares[i][j].holeee();
+                        squares[i][j].verificarHuecos();
                         if (squares[i][j].isNotWiner()) {
                             JOptionPane.showMessageDialog(SquareGUI.this, "You win", "Congratulations", JOptionPane.INFORMATION_MESSAGE);
                         }
                     }
                 }
 
-                // Obtiene los cuadrados y botones actualizados
-                squares = squares[0][0].getSquares();
-                buttons = squares[0][0].getButtons();
+                updateMovements();
 
-                // Repinta la GUI
+                revalidate();
                 repaint();
+                refresh();
             }
         });
 
         arrowDown.addActionListener(e -> {
+            movements++;
             for (int i = buttons.length - 1; i >= 0; i--) {
                 for (int j = 0; j < buttons[i].length; j++) {
                     squares[i][j].moveDown(i, j);
                 }
             }
-
+            squares = squares[0][0].getSquares();
+            buttons = squares[0][0].getButtons();
             for (int i = 0; i < buttons.length; i++) {
                 for (int j = 0; j < buttons[i].length; j++) {
-                    squares[i][j].holeee();
+                    squares[i][j].verificarHuecos();
                     if (squares[i][j].isNotWiner()) {
                         JOptionPane.showMessageDialog(SquareGUI.this, "You win", "Congratulations", JOptionPane.INFORMATION_MESSAGE);
                     }
                 }
             }
 
-            squares = squares[0][0].getSquares();
-            buttons = squares[0][0].getButtons();
 
+
+            updateMovements();
+
+            revalidate();
             repaint();
+            refresh();
         });
 
         arrowLeft.addActionListener(e -> {
+            movements++;
             for (int i = 0; i < buttons.length; i++) {
                 for (int j = 0; j < buttons[i].length; j++) {
                     squares[i][j].moveLeft(i, j);
                 }
             }
-
+            squares = squares[0][0].getSquares();
+            buttons = squares[0][0].getButtons();
             for (int i = 0; i < buttons.length; i++) {
                 for (int j = 0; j < buttons[i].length; j++) {
-                    squares[i][j].holeee();
+                    squares[i][j].verificarHuecos();
                     if (squares[i][j].isNotWiner()) {
                         JOptionPane.showMessageDialog(SquareGUI.this, "You win", "Congratulations", JOptionPane.INFORMATION_MESSAGE);
                     }
                 }
             }
 
-            squares = squares[0][0].getSquares();
-            buttons = squares[0][0].getButtons();
+            updateMovements();
 
+            revalidate();
             repaint();
+            refresh();
         });
 
         arrowRight.addActionListener(e -> {
+            movements++;
             for (int i = 0; i < buttons.length; i++) {
                 for (int j = buttons[i].length - 1; j >= 0; j--) {
                     squares[i][j].moveRight(i, j);
                 }
             }
-
+            squares = squares[0][0].getSquares();
+            buttons = squares[0][0].getButtons();
             for (int i = 0; i < buttons.length; i++) {
                 for (int j = 0; j < buttons[i].length; j++) {
-                    squares[i][j].holeee();
+                    squares[i][j].verificarHuecos();
                     if (squares[i][j].isNotWiner()) {
                         JOptionPane.showMessageDialog(SquareGUI.this, "You win", "Congratulations", JOptionPane.INFORMATION_MESSAGE);
                     }
                 }
             }
-
-            squares = squares[0][0].getSquares();
-            buttons = squares[0][0].getButtons();
-
+            updateMovements();
+            revalidate();
             repaint();
+            refresh();
         });
     }
 
@@ -474,11 +506,33 @@ public class SquareGUI extends JFrame {
         boadPaneArrow.add(arrowLeft);
         boadPaneArrow.add(new JLabel());
         boadPaneArrow.add(arrowRight);
-        boadPaneArrow.add(new JLabel());
+        //Boton 2
+        buttonPercentageWin = new Button();
+        buttonPercentageWin.setLabel("Porcentaje de victoria: " + 0 + "%");
+        buttonPercentageWin.setEnabled(false);
+        boadPaneArrow.add(buttonPercentageWin);
         boadPaneArrow.add(arrowDown);
-        boadPaneArrow.add(new JLabel());
+        //Boton
+        buttonMovements = new Button();
+        buttonMovements.setLabel("Movimientos: " + movements);
+        buttonMovements.setEnabled(false);
+        boadPaneArrow.add(buttonMovements);
+
         //Add the panel to the window
         this.add(boadPaneArrow, BorderLayout.SOUTH);
+    }
+
+    /**
+     * Function to reset the board
+     */
+    private void reset() {
+        this.buttons = new JButton[buttonsCopy.length][buttonsCopy[0].length];
+        for (int i = 0; i < buttons.length; i++) {
+            for (int j = 0; j < buttons[i].length; j++) {
+                buttons[i][j] = buttonsCopy[i][j];
+            }
+        }
+        refresh();
     }
 
     /**
@@ -554,8 +608,35 @@ public class SquareGUI extends JFrame {
         return new JButton(icon);
     }
 
+    /**
+     * Function to prepare the arrows of the board
+     * It is the main board of the game
+     */
     public static void main(String[] args) {
         SquareGUI gui = new SquareGUI();
         gui.setVisible(true);
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        int key = e.getKeyCode();
+        if (key == KeyEvent.VK_UP) {
+            arrowUp.doClick();
+        } else if (key == KeyEvent.VK_DOWN) {
+            arrowDown.doClick();
+        } else if (key == KeyEvent.VK_LEFT) {
+            arrowLeft.doClick();
+        } else if (key == KeyEvent.VK_RIGHT) {
+            arrowRight.doClick();
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+
     }
 }
