@@ -57,7 +57,7 @@ public class Square {
      *
      * @return Cuadrados
      */
-    public Square[][] getSquares() {
+        public Square[][] getSquares() {
         return squares;
     }
 
